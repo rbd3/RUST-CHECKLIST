@@ -1,4 +1,4 @@
-### 1.3 Slippage Protection
+### 1 Slippage Protection
 
 
  ***Liquidity Provision:** Add a max_amount_b parameter to provide_liquidity to limit Token B contributions, checking require!(amount_b <= max_amount_b, AmmError::Slippage). (Ref: Slippage Protection Issue)
