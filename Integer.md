@@ -1,17 +1,30 @@
-Rust Audit Checklist
-Integer Overflow & Underflow
-Checklist Items
 
-Use Checked Math Operations: Always use checked arithmetic methods (e.g., checked_add, checked_sub, checked_mul, checked_div) for integer operations to prevent overflow or underflow in release mode. Unchecked operations (e.g., +, -, *, /) may wrap around with two's complement in release mode, leading to unexpected behavior.
-Validate Arithmetic Results: Ensure arithmetic operations are checked for overflow/underflow using methods like .ok_or() to return an error (e.g., ProgramError::InvalidArgument) if the operation fails.
-Avoid Unchecked Casts: Do not use unchecked type conversions (e.g., as u32 on a u64 value), as they truncate values and can cause data loss or unexpected behavior. Use checked conversions like <type>::try_from(...) to handle conversions safely.
-Test Edge Cases: Include tests for boundary values (e.g., u32::MAX, u64::MAX, negative values for signed types) to ensure the program handles extreme inputs correctly and prevents wraparound.
-Check Solana BPF Context: When compiling with the Solana BPF toolchain (cargo build-bpf), ensure all arithmetic and type conversions are checked, as this toolchain operates in release mode, disabling default overflow checks.
-Audit User Input Handling: Verify that user-provided inputs (e.g., amount in a withdrawal function) are validated to prevent exploitation through large values that could trigger overflow/underflow.
-Document Assumptions: Clearly document any assumptions about integer ranges or expected values in the code to guide future audits and maintenance.
+### Integer Overflow & Underflow
+
+
+Use Checked Arithmetic Operations: Implement checked arithmetic methods (e.g., checked_add, checked_sub, checked_mul, checked_div, checked_rem) for all integer operations to prevent overflow or underflow. Unchecked operations (e.g., +, -, *, /, %) can wrap around with two's complement in release mode, leading to unintended behavior.
+
+
+
+Handle Arithmetic Results Safely: Use methods like .ok_or() or .unwrap_or() to handle potential overflow/underflow errors gracefully, returning appropriate errors (e.g., ProgramError::ArithmeticOverflow) or default values when necessary.
+
+
+
+Avoid Unchecked Type Conversions: Refrain from using unchecked casts (e.g., as u32 on a u64 or usize value), as they truncate values and may cause data loss. Use checked conversions like <type>::try_from(...) or <type>::try_into(...) to ensure safe type casting with error handling.
+
+
+
+Validate User Inputs: Sanitize and validate all user-provided inputs that feed into integer arithmetic or type conversions to prevent malicious inputs from triggering overflow/underflow (e.g., check for u32::MAX or other boundary values).
+
+
+
+Test Boundary Conditions: Write unit tests to cover edge cases, including maximum and minimum values for integer types (e.g., u8::MAX, i64::MIN), zero, and negative values for signed types, to ensure robust handling of potential overflow/underflow scenarios.
 
 Example
 Below is an example of safe arithmetic to prevent overflow in a token withdrawal function:
+
+```solidity
+
 let FEE: u32 = 1000;
 
 fn withdraw_token(program_id: &Pubkey, accounts: &[AccountInfo], amount: u32) -> ProgramResult {
@@ -25,5 +38,6 @@ fn withdraw_token(program_id: &Pubkey, accounts: &[AccountInfo], amount: u32) ->
 
     Ok(())
 }
+```
 
 This code uses checked_add to ensure the addition of amount and FEE does not overflow, returning an error if it does, thus preventing unauthorized withdrawals.
