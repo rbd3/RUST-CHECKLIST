@@ -1,0 +1,1 @@
+https://neodyme.io/en/blog/solana_common_pitfalls/#example-4
